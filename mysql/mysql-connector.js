@@ -1,3 +1,6 @@
+/**
+ * Khởi tạo kết nối tới cơ sở dữ liệu MySQL.
+ */
 var mysql = require('mysql2');
 
 var pool = mysql.createPool({

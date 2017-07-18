@@ -1,3 +1,6 @@
+/**
+ * Các hàm truy ván cơ sở dữ liệu.
+ */
 var mysql = require('mysql2');
 var mysqlConnector = require('../mysql/mysql-connector');
 

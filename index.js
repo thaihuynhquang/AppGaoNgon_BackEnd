@@ -1,3 +1,7 @@
+/**
+ * index.js
+ * - Khởi tạo server.
+ */
 var express = require('express');
 
 var api = require('./routes/api');

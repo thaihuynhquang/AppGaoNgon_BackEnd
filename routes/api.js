@@ -1,3 +1,7 @@
+/**
+ * api.js
+ * - Các api cung cấp các chức năng cho ứng dụng di động gạo ngon.
+ */
 var express = require('express');
 var router = express.Router();
 
