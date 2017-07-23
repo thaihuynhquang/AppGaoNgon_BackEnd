@@ -509,6 +509,11 @@ router.post('/get_info_form', jsonParser, function (req, res, next) {
                             else {
                                 if (data) {
                                     var resultsAddr = data[0];
+                                    var dateOrder = Date.parse(resultsAddr.date_order);
+                                    var expDate = Date.parse(resultsAddr.expected_date_order);
+                                    var msec = Math.abs(expDate - dateOrder);
+                                    var numMonth = new Date(msec).getMonth();
+                                    
                                     SQLquery.getBillDetailByBillID(resultsAddr.id, function (err, data) {
                                         if (err) {
                                             console.log(err);
@@ -517,7 +522,7 @@ router.post('/get_info_form', jsonParser, function (req, res, next) {
                                         else {
                                             if (data) {
                                                 var resultsBillDetails = data;
-                                                res.json({ user: resultsUser, addr: resultsAddr, arrayDetail: resultsBillDetails });
+                                                res.json({ user: resultsUser, addr: resultsAddr, numMonth: numMonth, arrayDetail: resultsBillDetails });
                                             }
                                             else
                                                 res.send("KHONG_CO_BILL_ID");
@@ -525,7 +530,7 @@ router.post('/get_info_form', jsonParser, function (req, res, next) {
                                     });
                                 }
                                 else
-                                    res.send("TOKEN_KHONG_HOP_LE");
+                                    res.json({ user: resultsUser, addr: { "address": "", "district": "", "city": "" }, arrayDetail: [] });
                             }
                         });
                     }
