@@ -145,6 +145,95 @@ router.get('/search/:key', function (req, res, next) {
         res.json([]);
 });
 
+router.get('/init', function (req, res, next) {
+    SQLquery.getTopProducts(function (err, data) {
+        if (err) {
+            console.log(err);
+            res.send("LOI_TRUY_VAN");
+        }
+        else {
+            var product = data;
+            SQLquery.getProductType(function (err, data) {
+                if (err) {
+                    console.log(err);
+                    res.send("LOI_TRUY_VAN");
+                }
+                else {
+                    var type = data;
+                    res.json({ type: type, product: product });
+                }
+            });
+        }
+    });
+});
+
+router.post('/decrUnitOnBill', jsonParser, function (req, res, next) {
+    if (!req.body) return res.sendStatus(400);
+    var json = req.body;
+    var token = (json.token);
+    var billID = (json.billID);
+    try {
+        jwt.verify(token, secret, function (err, decoded) {
+            if (err)
+                return res.send("TOKEN_KHONG_HOP_LE");
+            if (decoded.expire < (new Date()).getTime())
+                return res.send("TOKEN_HET_HAN");
+            SQLquery.getBillDetailByBillID(billID, function (err, data) {
+                if (err) {
+                    console.log(err);
+                    res.send("LOI_TRUY_VAN");
+                }
+                else {
+                    if (data) {
+                        var arrBillDetails = data;
+                        arrBillDetails.forEach(function (el) {
+                            SQLquery.getUnitOnBillInProducts(el.id, function (err, data) {
+                                if (err) {
+                                    console.log(err);
+                                    res.send("LOI_TRUY_VAN");
+                                }
+                                else {
+                                    if (data) {
+                                        var unitOnBill = data[0].unitOnBill;
+                                        unitOnBill = unitOnBill - el.quantity;
+                                        if (unitOnBill < 0) {
+                                            console.log("unitOnBill: " + unitOnBill);
+                                            return;
+                                        }
+                                        SQLquery.setUnitOnBillByProductId(el.id, unitOnBill, function (err, data) {
+                                            if (err) {
+                                                console.log(err);
+                                                res.send("LOI_TRUY_VAN");
+                                            }
+                                            else {
+                                                if (data) {
+                                                    flag = true;
+                                                }
+                                                else {
+                                                    res.send("PRODUCTID_NOT_FOUND_DB");
+                                                }
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        res.send("PRODUCTID_NOT_FOUND_DB");
+                                    }
+                                }
+                            });
+                        });
+                    }
+                    else {
+                        res.send("BILLDETAILS_NOT_FOUND_DB");
+                    }
+                }
+            });
+            res.send("THANH_CONG");
+        });
+    } catch (error) {
+        res.send("TOKEN_KHONG_HOP_LE");
+    }
+});
+
 router.get('/setUnitOnBill/:productId', function (req, res, next) {
     var productId = req.params.productId;
     SQLquery.getUnitOnBillByProductId(productId, function (err, data) {
@@ -177,26 +266,36 @@ router.get('/setUnitOnBill/:productId', function (req, res, next) {
     });
 });
 
-router.get('/init', function (req, res, next) {
-    SQLquery.getTopProducts(function (err, data) {
-        if (err) {
-            console.log(err);
-            res.send("LOI_TRUY_VAN");
-        }
-        else {
-            var product = data;
-            SQLquery.getProductType(function (err, data) {
+router.post('/setBillStatus', jsonParser, function (req, res, next) {
+    if (!req.body) return res.sendStatus(400);
+    var json = req.body;
+    var token = (json.token);
+    var billID = (json.billID);
+    var statusCode = (json.statusCode);
+    try {
+        jwt.verify(token, secret, function (err, decoded) {
+            if (err)
+                return res.send("TOKEN_KHONG_HOP_LE");
+            if (decoded.expire < (new Date()).getTime())
+                return res.send("TOKEN_HET_HAN");
+            SQLquery.setStatusByBillId(billID, statusCode, function (err, data) {
                 if (err) {
                     console.log(err);
                     res.send("LOI_TRUY_VAN");
                 }
                 else {
-                    var type = data;
-                    res.json({ type: type, product: product });
+                    if (data) {
+                        res.send("THANH_CONG");
+                    }
+                    else {
+                        res.send("LOI_TRUY_VAN");
+                    }
                 }
             });
-        }
-    });
+        });
+    } catch (error) {
+        res.send("TOKEN_KHONG_HOP_LE");
+    }
 });
 
 router.post('/register', jsonParser, function (req, res, next) {
@@ -513,7 +612,7 @@ router.post('/get_info_form', jsonParser, function (req, res, next) {
                                     var expDate = Date.parse(resultsAddr.expected_date_order);
                                     var msec = Math.abs(expDate - dateOrder);
                                     var numMonth = new Date(msec).getMonth();
-                                    
+
                                     SQLquery.getBillDetailByBillID(resultsAddr.id, function (err, data) {
                                         if (err) {
                                             console.log(err);

@@ -35,6 +35,30 @@ module.exports = {
         });
     },
 
+    getUnitOnBillInProducts: function (productId, callback) {
+        mysqlConnector.getConnection(function (err, connection) {
+            //Error handling
+            if (err) {
+                //end connection
+                connection.release();
+                return callback(err, null);
+            }
+            
+            connection.query('SELECT p.id, p.unitOnBill FROM `product` p WHERE p.id =?', [productId], function (error, results, fields) {
+                //end connection
+                connection.release();
+                //Error handling
+                if (error) return callback(error, null);
+                
+                if(results.length > 0)
+                    //Business handling
+                    return callback(null, results);
+                //
+                return callback(null, null);
+            })
+        });
+    },
+
     getProductByName: function (name, callback) {
         mysqlConnector.getConnection(function (err, connection) {
             //Error handling
@@ -229,7 +253,7 @@ module.exports = {
                 return callback(err, null);
             }
             
-            connection.query('SELECT b.id, b.date_order, b.expected_date_order, b.status, b.total, b.address, b.district, b.city FROM bill b INNER JOIN users u ON u.id=b.id_customer where u.email =? ORDER BY b.date_order DESC', [email], function (error, results, fields) {
+            connection.query('SELECT b.id, b.date_order, b.expected_date_order, b.status, b.total, b.address, b.district, b.city FROM bill b INNER JOIN users u ON u.id=b.id_customer where u.email =? and b.status != 3 ORDER BY b.date_order DESC', [email], function (error, results, fields) {
                 //end connection
                 connection.release();
                 //Error handling
@@ -374,6 +398,30 @@ module.exports = {
             }
             
             connection.query('UPDATE product pro SET pro.unitOnBill = ? WHERE pro.Id = ?', [unitOnBill, productId], function (error, results, fields) {
+                //end connection
+                connection.release();
+                //Error handling
+                if (error) return callback(error, null);
+                
+                if(results.affectedRows != 0)
+                    //Business handling
+                    return callback(null, results);
+                //
+                return callback(null, null);
+            })
+        });
+    },
+
+    setStatusByBillId: function (billID, statusCode, callback) {
+        mysqlConnector.getConnection(function (err, connection) {
+            //Error handling
+            if (err) {
+                //end connection
+                connection.release();
+                return callback(err, null);
+            }
+            
+            connection.query('UPDATE bill b SET b.status = ? WHERE b.id = ?', [statusCode, billID], function (error, results, fields) {
                 //end connection
                 connection.release();
                 //Error handling
