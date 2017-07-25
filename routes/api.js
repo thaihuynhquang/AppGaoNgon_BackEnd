@@ -49,7 +49,7 @@ var imageFilter = function (req, file, callback) {
 // warningTime
 var msec1Date = 86400000;
 var warningTime = 5 * msec1Date;
-
+var msecOld = 0;
 //get today
 var gettoday = function () {
     var today = new Date();
@@ -73,6 +73,8 @@ var gettoday = function () {
 //get today + numMonth
 var getTodayPlusNmonth = function (num) {
     var today = new Date();
+    var msec = today.getTime() + msecOld;
+    today = new Date(msec);
     var dd = today.getDate();
     var mm = today.getMonth() + 1 + num;
     var yyyy = today.getFullYear();
@@ -664,9 +666,10 @@ router.post('/notify_order', jsonParser, function (req, res, next) {
                         var results = data[0];
                         var expDate = Date.parse(results.expected_date_order);
                         var today = new Date().getTime();
-                        var kq = Math.abs(expDate - today);
-                        var numDate = Math.floor(kq / msec1Date);
-                        if (kq <= warningTime)
+                        var msec = Math.abs(expDate - today);
+                        msecOld = msec;
+                        var numDate = Math.floor(msec / msec1Date);
+                        if (msec <= warningTime)
                             res.json({ msg: "CANH_BAO", numDate: numDate });
                         else
                             res.json({ msg: "KHONG_CANH_BAO", numDate: numDate });

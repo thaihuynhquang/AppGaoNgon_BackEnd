@@ -373,7 +373,7 @@ module.exports = {
                 return callback(err, null);
             }
             
-            connection.query('SELECT SUM(quantity) as unitOnBill FROM bill_detail bd Where bd.id_product = ?', [productId], function (error, results, fields) {
+            connection.query('SELECT SUM(bd.quantity) as unitOnBill FROM bill_detail bd JOIN bill b ON bd.id_bill = b.id WHERE bd.id_product =? AND b.status = 0', [productId], function (error, results, fields) {
                 //end connection
                 connection.release();
                 //Error handling
