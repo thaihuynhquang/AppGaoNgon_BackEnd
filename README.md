@@ -11,7 +11,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 1. Install [XAMPP](https://www.apachefriends.org/index.html).
-2. Use import database in phpmyadmin, choose file appgao_db.sql.
+2. Use import database in phpmyadmin, choose file [appgao_db.sql](ScriptDB/appgao_db.sql).
 
 ### Installing
 1. install project.
